@@ -1,0 +1,102 @@
+[
+  {
+    "chapter": "Ch1",
+    "question": "What human activities have significantly contributed to climate change over the past century?",
+    "answer": "The burning of fossil fuels and deforestation have significantly contributed to climate change."
+  },
+  {
+    "chapter": "Ch2",
+    "question": "What is the primary cause of recent climate change?",
+    "answer": "The primary cause of recent climate change is the increase in greenhouse gases in the atmosphere."
+  },
+  {
+    "chapter": "Ch2",
+    "question": "What are the main greenhouse gases mentioned in the document?",
+    "answer": "Greenhouse gases such as carbon dioxide (CO2), methane (CH4), and nitrous oxide (N2O) trap heat from the sun, creating a greenhouse effect."
+  },
+  {
+    "chapter": "Ch2",
+    "question": "What is the most carbon-intensive fossil fuel?",
+    "answer": "Coal is the most carbon-intensive fossil fuel."
+  },
+  {
+    "chapter": "Ch3",
+    "question": "How much have global temperatures risen since the late 19th century?",
+    "answer": "Global temperatures have risen by about 1.2 degrees Celsius (2.2 degrees Fahrenheit) since the late 19th century."
+  },
+  {
+    "chapter": "Ch3",
+    "question": "Why are coral reefs highly sensitive to climate change?",
+    "answer": "Coral reefs are highly sensitive to changes in temperature and acidity, which can lead to coral bleaching and reef loss."
+  },
+  {
+    "chapter": "Ch4",
+    "question": "What are the two complementary approaches to addressing climate change?",
+    "answer": "Mitigation involves reducing or preventing the emission of greenhouse gases, while adaptation involves making adjustments to social, economic, and environmental practices to minimize the damage caused by climate change."
+  },
+  {
+    "chapter": "Ch4",
+    "question": "What renewable energy sources does the document mention?",
+    "answer": "Renewable energy sources such as wind, solar, and hydroelectric power."
+  },
+  {
+    "chapter": "Ch5",
+    "question": "What next-generation solar technologies are mentioned in the document?",
+    "answer": "New advancements in solar technology such as perovskite solar cells and solar paint."
+  },
+  {
+    "chapter": "Ch6",
+    "question": "What is the UNFCCC?",
+    "answer": "The United Nations Framework Convention on Climate Change (UNFCCC) is an international treaty aimed at addressing climate change, providing a framework for agreements such as the Kyoto Protocol and the Paris Agreement."
+  },
+  {
+    "chapter": "Ch6",
+    "question": "When was the Paris Agreement adopted?",
+    "answer": "The Paris Agreement was adopted in 2015."
+  },
+  {
+    "chapter": "Ch7",
+    "question": "What are two economic costs of climate change mentioned in the document?",
+    "answer": "The economic costs of climate change include damage to infrastructure, reduced agricultural productivity, health care costs, and lost labor productivity."
+  },
+  {
+    "chapter": "Ch8",
+    "question": "How can artificial intelligence and machine learning help address climate change?",
+    "answer": "AI and machine learning can optimize energy use, predict climate patterns, and enhance climate resilience, with applications including smart grids, climate modeling, and precision agriculture."
+  },
+  {
+    "chapter": "Ch9",
+    "question": "How is climate change altering terrestrial ecosystems?",
+    "answer": "Climate change is altering terrestrial ecosystems by shifting habitat ranges, changing species distributions, and impacting ecosystem functions."
+  },
+  {
+    "chapter": "Ch10",
+    "question": "What heat-related illnesses are mentioned in the document?",
+    "answer": "Rising temperatures and more frequent heatwaves increase the risk of heat-related illnesses such as heat exhaustion and heatstroke."
+  },
+  {
+    "chapter": "Ch11",
+    "question": "Why is it important to integrate climate change into educational curricula?",
+    "answer": "Integrating climate change into educational curricula is essential for raising awareness and building knowledge."
+  },
+  {
+    "chapter": "Ch13",
+    "question": "What does climate justice emphasize?",
+    "answer": "Climate justice emphasizes the ethical dimensions of climate change, recognizing that its impacts are not evenly distributed."
+  },
+  {
+    "chapter": "Ch14",
+    "question": "What is a green economy?",
+    "answer": "A green economy prioritizes sustainability and reduces environmental risks."
+  },
+  {
+    "chapter": "Ch16",
+    "question": "What temperature goal does the Paris Agreement set?",
+    "answer": "The Paris Agreement aims to limit global warming to well below 2 degrees Celsius above pre-industrial levels, with efforts to limit the increase to 1.5 degrees Celsius."
+  },
+  {
+    "chapter": "Ch17",
+    "question": "Give two examples of green infrastructure mentioned in the document.",
+    "answer": "Green infrastructure such as parks, wetlands, and green roofs."
+  }
+]
