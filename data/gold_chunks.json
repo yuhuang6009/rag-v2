@@ -1,0 +1,162 @@
+[
+  {
+    "id": 1,
+    "chapter": "Ch1",
+    "question": "What human activities have significantly contributed to climate change over the past century?",
+    "gold_chunks": [
+      0
+    ]
+  },
+  {
+    "id": 2,
+    "chapter": "Ch2",
+    "question": "What is the primary cause of recent climate change?",
+    "gold_chunks": [
+      2
+    ]
+  },
+  {
+    "id": 3,
+    "chapter": "Ch2",
+    "question": "What are the main greenhouse gases mentioned in the document?",
+    "gold_chunks": [
+      2
+    ]
+  },
+  {
+    "id": 4,
+    "chapter": "Ch2",
+    "question": "What is the most carbon-intensive fossil fuel?",
+    "gold_chunks": [
+      3
+    ]
+  },
+  {
+    "id": 5,
+    "chapter": "Ch3",
+    "question": "How much have global temperatures risen since the late 19th century?",
+    "gold_chunks": [
+      9
+    ]
+  },
+  {
+    "id": 6,
+    "chapter": "Ch3",
+    "question": "Why are coral reefs highly sensitive to climate change?",
+    "gold_chunks": [
+      14
+    ]
+  },
+  {
+    "id": 7,
+    "chapter": "Ch4",
+    "question": "What are the two complementary approaches to addressing climate change?",
+    "gold_chunks": [
+      15
+    ]
+  },
+  {
+    "id": 8,
+    "chapter": "Ch4",
+    "question": "What renewable energy sources does the document mention?",
+    "gold_chunks": [
+      15
+    ]
+  },
+  {
+    "id": 9,
+    "chapter": "Ch5",
+    "question": "What next-generation solar technologies are mentioned in the document?",
+    "gold_chunks": [
+      25
+    ]
+  },
+  {
+    "id": 10,
+    "chapter": "Ch6",
+    "question": "What is the UNFCCC?",
+    "gold_chunks": [
+      32
+    ]
+  },
+  {
+    "id": 11,
+    "chapter": "Ch6",
+    "question": "When was the Paris Agreement adopted?",
+    "gold_chunks": [
+      32
+    ]
+  },
+  {
+    "id": 12,
+    "chapter": "Ch7",
+    "question": "What are two economic costs of climate change mentioned in the document?",
+    "gold_chunks": [
+      36
+    ]
+  },
+  {
+    "id": 13,
+    "chapter": "Ch8",
+    "question": "How can artificial intelligence and machine learning help address climate change?",
+    "gold_chunks": [
+      39
+    ]
+  },
+  {
+    "id": 14,
+    "chapter": "Ch9",
+    "question": "How is climate change altering terrestrial ecosystems?",
+    "gold_chunks": [
+      44
+    ]
+  },
+  {
+    "id": 15,
+    "chapter": "Ch10",
+    "question": "What heat-related illnesses are mentioned in the document?",
+    "gold_chunks": [
+      49
+    ]
+  },
+  {
+    "id": 16,
+    "chapter": "Ch11",
+    "question": "Why is it important to integrate climate change into educational curricula?",
+    "gold_chunks": [
+      54
+    ]
+  },
+  {
+    "id": 17,
+    "chapter": "Ch13",
+    "question": "What does climate justice emphasize?",
+    "gold_chunks": [
+      64
+    ]
+  },
+  {
+    "id": 18,
+    "chapter": "Ch14",
+    "question": "What is a green economy?",
+    "gold_chunks": [
+      69
+    ]
+  },
+  {
+    "id": 19,
+    "chapter": "Ch16",
+    "question": "What temperature goal does the Paris Agreement set?",
+    "gold_chunks": [
+      79
+    ]
+  },
+  {
+    "id": 20,
+    "chapter": "Ch17",
+    "question": "Give two examples of green infrastructure mentioned in the document.",
+    "gold_chunks": [
+      86
+    ]
+  }
+]

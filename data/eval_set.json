@@ -2,7 +2,7 @@
   {
     "chapter": "Ch1",
     "question": "What human activities have significantly contributed to climate change over the past century?",
-    "answer": "The burning of fossil fuels and deforestation have significantly contributed to climate change."
+    "answer": "Over the past century, human activities, particularly the burning of fossil fuels and deforestation, have significantly contributed to climate change."
   },
   {
     "chapter": "Ch2",
@@ -12,12 +12,12 @@
   {
     "chapter": "Ch2",
     "question": "What are the main greenhouse gases mentioned in the document?",
-    "answer": "Greenhouse gases such as carbon dioxide (CO2), methane (CH4), and nitrous oxide (N2O) trap heat from the sun, creating a greenhouse effect."
+    "answer": "Greenhouse gases, such as carbon dioxide (CO2), methane (CH4), and nitrous oxide (N2O), trap heat from the sun"
   },
   {
     "chapter": "Ch2",
     "question": "What is the most carbon-intensive fossil fuel?",
-    "answer": "Coal is the most carbon-intensive fossil fuel."
+    "answer": "Coal is the most carbon-intensive fossil fuel, and its use for electricity generation is a major source of CO2 emissions."
   },
   {
     "chapter": "Ch3",
@@ -27,32 +27,32 @@
   {
     "chapter": "Ch3",
     "question": "Why are coral reefs highly sensitive to climate change?",
-    "answer": "Coral reefs are highly sensitive to changes in temperature and acidity, which can lead to coral bleaching and reef loss."
+    "answer": "Coral reefs are highly sensitive to changes in temperature and acidity. Ocean acidification and warming waters contribute to coral bleaching and mortality, threatening biodiversity and fisheries."
   },
   {
     "chapter": "Ch4",
     "question": "What are the two complementary approaches to addressing climate change?",
-    "answer": "Mitigation involves reducing or preventing the emission of greenhouse gases, while adaptation involves making adjustments to social, economic, and environmental practices to minimize the damage caused by climate change."
+    "answer": "Addressing climate change requires a two-pronged approach: mitigation and adaptation. Mitigation involves reducing or preventing the emission of greenhouse gases, while adaptation involves making adjustments to social, economic, and environmental practices to minimize the damage caused by climate change."
   },
   {
     "chapter": "Ch4",
     "question": "What renewable energy sources does the document mention?",
-    "answer": "Renewable energy sources such as wind, solar, and hydroelectric power."
+    "answer": "Transitioning to renewable energy sources, such as wind, solar, and hydroelectric power, is crucial for reducing greenhouse gas emissions."
   },
   {
     "chapter": "Ch5",
     "question": "What next-generation solar technologies are mentioned in the document?",
-    "answer": "New advancements in solar technology such as perovskite solar cells and solar paint."
+    "answer": "New advancements in solar technology, such as perovskite solar cells and solar paint, promise higher efficiency and lower costs."
   },
   {
     "chapter": "Ch6",
     "question": "What is the UNFCCC?",
-    "answer": "The United Nations Framework Convention on Climate Change (UNFCCC) is an international treaty aimed at addressing climate change, providing a framework for agreements such as the Kyoto Protocol and the Paris Agreement."
+    "answer": "The UNFCCC is an international treaty aimed at addressing climate change. It provides a framework for negotiating specific protocols and agreements, such as the Kyoto Protocol and the Paris Agreement."
   },
   {
     "chapter": "Ch6",
     "question": "When was the Paris Agreement adopted?",
-    "answer": "The Paris Agreement was adopted in 2015."
+    "answer": "The Paris Agreement, adopted in 2015, aims to limit global warming to well below 2 degrees Celsius above pre-industrial levels, with efforts to limit the increase to 1.5 degrees Celsius."
   },
   {
     "chapter": "Ch7",
@@ -62,7 +62,7 @@
   {
     "chapter": "Ch8",
     "question": "How can artificial intelligence and machine learning help address climate change?",
-    "answer": "AI and machine learning can optimize energy use, predict climate patterns, and enhance climate resilience, with applications including smart grids, climate modeling, and precision agriculture."
+    "answer": "AI and machine learning can optimize energy use, predict climate patterns, and enhance climate resilience. Applications include smart grids, climate modeling, and precision agriculture."
   },
   {
     "chapter": "Ch9",
@@ -72,7 +72,7 @@
   {
     "chapter": "Ch10",
     "question": "What heat-related illnesses are mentioned in the document?",
-    "answer": "Rising temperatures and more frequent heatwaves increase the risk of heat-related illnesses such as heat exhaustion and heatstroke."
+    "answer": "Rising temperatures and more frequent heatwaves increase the risk of heat-related illnesses, such as heat exhaustion and heatstroke."
   },
   {
     "chapter": "Ch11",
@@ -92,11 +92,11 @@
   {
     "chapter": "Ch16",
     "question": "What temperature goal does the Paris Agreement set?",
-    "answer": "The Paris Agreement aims to limit global warming to well below 2 degrees Celsius above pre-industrial levels, with efforts to limit the increase to 1.5 degrees Celsius."
+    "answer": "The Paris Agreement is a landmark international accord that aims to limit global warming to well below 2 degrees Celsius above pre-industrial levels, with efforts to limit the increase to 1.5 degrees Celsius."
   },
   {
     "chapter": "Ch17",
     "question": "Give two examples of green infrastructure mentioned in the document.",
-    "answer": "Green infrastructure such as parks, wetlands, and green roofs."
+    "answer": "Green infrastructure, such as parks, wetlands, and green roofs, enhances urban resilience by managing stormwater, reducing heat, and improving air quality."
   }
 ]

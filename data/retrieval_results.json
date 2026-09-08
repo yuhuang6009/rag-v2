@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1,
+    "question": "What human activities have significantly contributed to climate change over the past century?",
+    "retrieved": [
+      2,
+      0,
+      7
+    ]
+  },
+  {
+    "id": 2,
+    "question": "What is the primary cause of recent climate change?",
+    "retrieved": [
+      2,
+      0,
+      1
+    ]
+  },
+  {
+    "id": 3,
+    "question": "What are the main greenhouse gases mentioned in the document?",
+    "retrieved": [
+      2,
+      8,
+      80
+    ]
+  },
+  {
+    "id": 4,
+    "question": "What is the most carbon-intensive fossil fuel?",
+    "retrieved": [
+      3,
+      4,
+      5
+    ]
+  },
+  {
+    "id": 5,
+    "question": "How much have global temperatures risen since the late 19th century?",
+    "retrieved": [
+      1,
+      9,
+      0
+    ]
+  },
+  {
+    "id": 6,
+    "question": "Why are coral reefs highly sensitive to climate change?",
+    "retrieved": [
+      14,
+      45,
+      12
+    ]
+  },
+  {
+    "id": 7,
+    "question": "What are the two complementary approaches to addressing climate change?",
+    "retrieved": [
+      93,
+      41,
+      40
+    ]
+  },
+  {
+    "id": 8,
+    "question": "What renewable energy sources does the document mention?",
+    "retrieved": [
+      16,
+      74,
+      75
+    ]
+  },
+  {
+    "id": 9,
+    "question": "What next-generation solar technologies are mentioned in the document?",
+    "retrieved": [
+      25,
+      24,
+      74
+    ]
+  },
+  {
+    "id": 10,
+    "question": "What is the UNFCCC?",
+    "retrieved": [
+      32,
+      99,
+      80
+    ]
+  },
+  {
+    "id": 11,
+    "question": "When was the Paris Agreement adopted?",
+    "retrieved": [
+      81,
+      32,
+      80
+    ]
+  },
+  {
+    "id": 12,
+    "question": "What are two economic costs of climate change mentioned in the document?",
+    "retrieved": [
+      37,
+      36,
+      15
+    ]
+  },
+  {
+    "id": 13,
+    "question": "How can artificial intelligence and machine learning help address climate change?",
+    "retrieved": [
+      39,
+      77,
+      40
+    ]
+  },
+  {
+    "id": 14,
+    "question": "How is climate change altering terrestrial ecosystems?",
+    "retrieved": [
+      44,
+      10,
+      45
+    ]
+  },
+  {
+    "id": 15,
+    "question": "What heat-related illnesses are mentioned in the document?",
+    "retrieved": [
+      49,
+      50,
+      9
+    ]
+  },
+  {
+    "id": 16,
+    "question": "Why is it important to integrate climate change into educational curricula?",
+    "retrieved": [
+      54,
+      109,
+      110
+    ]
+  },
+  {
+    "id": 17,
+    "question": "What does climate justice emphasize?",
+    "retrieved": [
+      64,
+      65,
+      62
+    ]
+  },
+  {
+    "id": 18,
+    "question": "What is a green economy?",
+    "retrieved": [
+      70,
+      69,
+      71
+    ]
+  },
+  {
+    "id": 19,
+    "question": "What temperature goal does the Paris Agreement set?",
+    "retrieved": [
+      32,
+      81,
+      79
+    ]
+  },
+  {
+    "id": 20,
+    "question": "Give two examples of green infrastructure mentioned in the document.",
+    "retrieved": [
+      86,
+      30,
+      31
+    ]
+  }
+]
