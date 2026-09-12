@@ -28,7 +28,7 @@ EVAL_JSON = DATA_DIR / "eval_set.json"
 STORE_JSON = DATA_DIR / "vector_store.json"   # 缓存块向量，避免重复调 API
 
 # ===== 检索参数区 =====
-TOP_K = 3                    # 默认返回前几块（第 7 周调参可改这里）
+TOP_K = 3                    # 给大模型喂几块（第 7 周调参可改这里；evaluator 能自己切 k，不受此限制）
 EMBEDDING_MODEL = TextEmbedding.Models.text_embedding_v3
 
 
@@ -65,27 +65,29 @@ def build_index(force=False):
 
 
 def retrieve_top_k(store, question, top_k=TOP_K):
-    """返回前 top_k 块的 [{"index":.., "text":.., "score":..}]，按相似度降序。"""
+    """返回前 top_k 块的 [{"index":.., "text":.., "score":..}]，按相似度降序。
+    top_k=None → 返回全部 114 块的完整排序（给 evaluator 算 gold 的精确名次用）。"""
     q_vec = _embed(question)
     scored = []
     for item in store:
         score = cosine_similarity(q_vec, item["vector"])
         scored.append({"index": item["index"], "text": item["text"], "score": score})
     scored.sort(key=lambda x: x["score"], reverse=True)
-    return scored[:top_k]
+    return scored if top_k is None else scored[:top_k]
 
 
 def _run_eval(top_k):
-    """跑 20 题，每题打印 top-k 的 index，供第④步 hit_rate 用（也可脚本复用）。"""
+    """跑 20 题，存【完整排序】ranked（114 块的 index，按相似度从高到低）。
+    存全排序的好处：evaluator 自己切 top-1/3/5，改 k 不用重跑检索（省 API 调用）。"""
     store = build_index()
     eval_set = json.load(open(EVAL_JSON, encoding="utf-8"))
 
     results = []
     for i, item in enumerate(eval_set, 1):
-        top = retrieve_top_k(store, item["question"], top_k=top_k)
-        ids = [t["index"] for t in top]
-        results.append({"id": i, "question": item["question"], "retrieved": ids})
-        print(f"#{i:02d} {item['chapter']} top-{top_k}: {ids}")
+        full = retrieve_top_k(store, item["question"], top_k=None)
+        ranked = [t["index"] for t in full]
+        results.append({"id": i, "question": item["question"], "ranked": ranked})
+        print(f"#{i:02d} {item['chapter']} top-{top_k}: {ranked[:top_k]}")
 
     out = DATA_DIR / "retrieval_results.json"
     with open(out, "w", encoding="utf-8") as f:
