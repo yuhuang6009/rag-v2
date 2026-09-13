@@ -10,6 +10,8 @@
 # 为什么不用重新算向量：retrieval_results.json 里已经存了 ranked（114 块的完整排序），
 # 这步只要「切前 k 名 → 按编号去 chunks.json 取原文」，不碰 embedding（省一半 API 钱）。
 
+# 一句话：噪声 = 结果的随机晃动；噪声带 = 晃动范围；测它 = 先知道「多大的变化才值得当回事」。
+
 import json
 import os
 import sys
