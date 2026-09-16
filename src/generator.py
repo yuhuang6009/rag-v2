@@ -139,3 +139,9 @@ if __name__ == "__main__":
         run_noise(top_k, runs)
     else:                              # 默认：单次运行，更新 answers.json
         _run(top_k)
+
+
+
+# python src/generator.py --runs 5  
+# python src/keyword_recall.py --noise
+
