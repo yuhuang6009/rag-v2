@@ -1,0 +1,5 @@
+{
+  "chunk_size": 800,
+  "chunk_overlap": 160,
+  "n_chunks": 114
+}

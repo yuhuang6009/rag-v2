@@ -26,6 +26,9 @@ DATA_DIR = BASE_DIR / ".." / "data"
 EVAL_JSON = DATA_DIR / "eval_set.json"          # 标准答案（20 题）
 ANSWERS_JSON = DATA_DIR / "answers.json"        # 生成答案（generator.py 产物，单次）
 NOISE_JSON = DATA_DIR / "answers_multirun.json" # 多次运行结果（generator.py --runs N 产物）
+CONFIG_JSON = DATA_DIR / "chunk_config.json"    # chunker.py 写的「这批块的参数」
+GEN_CONFIG_JSON = DATA_DIR / "gen_config.json"  # generator.py 写的「这批答案的参数」
+SWEEP_JSON = DATA_DIR / "sweep_results.json"    # 扫参总账：每个配置一条记录
 
 # ===== 参数区 =====
 # 停用词：不算关键词的词。不滤掉的话，任何一段英文都能命中一堆 the/of/and
@@ -93,6 +96,38 @@ def compute_keyword_recall(eval_set, answers):
     return avg, rows
 
 
+def _sweep_key(entry):
+    """一条记录的身份：换个配置算新记录，同样配置重跑就覆盖。
+    必须和 evaluator.py 的同名函数一致 —— 两个 side 的 key 形状不同，
+    「同配置」的判断就会跑偏（生成侧漏了 top_k 的话，top_k=3 和 6 会撞车互相覆盖）。"""
+    c = entry["config"]
+    return (c.get("chunk_size"), c.get("chunk_overlap"), c.get("top_k"), entry["side"])
+
+
+def record_sweep(avg, rows):
+    """把这次的生成侧结果记进 sweep_results.json（和 evaluator 共用一个总账文件）。"""
+    # 生成侧同时依赖两套参数：切块参数（哪几块）+ 生成参数（喂几块、哪个模型）
+    config = json.load(open(CONFIG_JSON, encoding="utf-8")) if CONFIG_JSON.exists() else {}
+    if GEN_CONFIG_JSON.exists():
+        config.update(json.load(open(GEN_CONFIG_JSON, encoding="utf-8")))
+
+    entry = {
+        "config": config,
+        "side": "generation",
+        "metrics": {"keyword_recall": avg},
+        "per_question": rows,
+    }
+
+    sweep = json.load(open(SWEEP_JSON, encoding="utf-8")) if SWEEP_JSON.exists() else []
+    key = _sweep_key(entry)
+    sweep = [e for e in sweep if _sweep_key(e) != key]
+    sweep.append(entry)
+
+    with open(SWEEP_JSON, "w", encoding="utf-8") as f:
+        json.dump(sweep, f, ensure_ascii=False, indent=2)
+    print(f"已记入扫参总账（现 {len(sweep)} 条）→ {SWEEP_JSON}")
+
+
 def compute_noise_band(eval_set, multirun):
     """同一配置跑 N 轮的分数波动范围 —— 「噪声带」。
     返回 (每轮分数 list, 最低, 最高)。
@@ -138,3 +173,6 @@ if __name__ == "__main__":
 
         print(f"\nkeyword_recall = {avg:.2f}   （20 题平均，纯字面匹配）")
         print("[!]单次数字不可当真：生成有噪声。要测噪声带就跑 --noise。")
+
+        if "--record" in sys.argv:
+            record_sweep(avg, rows)

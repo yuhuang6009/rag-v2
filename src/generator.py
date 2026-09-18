@@ -34,6 +34,7 @@ CHUNKS_JSON = DATA_DIR / "chunks.json"
 RETRIEVAL_JSON = DATA_DIR / "retrieval_results.json"
 ANSWERS_JSON = DATA_DIR / "answers.json"           # 产物①：单次运行（faithfulness 用）
 NOISE_JSON = DATA_DIR / "answers_multirun.json"    # 产物②：多次运行（噪声带用）
+GEN_CONFIG_JSON = DATA_DIR / "gen_config.json"     # 这批答案是哪套参数生成的
 
 # ===== 生成参数区 =====
 TOP_K = 3                                     # 喂给大模型几块（第 7 周调参可改这里）
@@ -106,7 +107,14 @@ def _run(top_k):
     ]
     with open(ANSWERS_JSON, "w", encoding="utf-8") as f:
         json.dump(flat, f, ensure_ascii=False, indent=2)
+
+    # 记录生成参数 —— top_k 决定喂几块，直接改变答案，是这批数据的身份之一
+    with open(GEN_CONFIG_JSON, "w", encoding="utf-8") as f:
+        json.dump({"top_k": top_k, "runs": 1, "model": MODEL}, f,
+                  ensure_ascii=False, indent=2)
+
     print(f"\n20 题答案已存 → {ANSWERS_JSON}")
+    print(f"生成参数已记录 → {GEN_CONFIG_JSON}")
     return flat
 
 
