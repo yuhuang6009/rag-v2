@@ -1,8 +1,14 @@
 # src/keyword_recall.py —— 生成侧指标：标准答案的关键词，在生成答案里命中几个
 # 依赖：data/eval_set.json（标准答案）+ data/answers.json（生成答案）
 # 命令行用法：
-#   python src/keyword_recall.py              # 算 20 题的 keyword_recall
-#   python src/keyword_recall.py --noise      # 算「噪声带」（要先跑 generator.py --runs N）
+#   python src/keyword_recall.py                        # 算 20 题的 keyword_recall
+#   python src/keyword_recall.py --record               # 顺带记进扫参总账（单次）
+#   python src/keyword_recall.py --noise                # 算「噪声带」（要先跑 generator.py --runs N）
+#   python src/keyword_recall.py --noise --record       # 记噪声带（均值 + 上下界）进总账
+#
+# ★ 记总账为什么要么带 --noise、要么只是【筛选】：
+#   生成有噪声，单次跑只是一个样本，不是「这条配置的成绩」。
+#   单次记录只能检出【大于噪声带宽】的差距；差距小的时候它回答不了「谁更好」。
 #
 # 和 evaluator.py 的区别（一份文件管一侧，别混）：
 #   evaluator.py      → 检索侧，比的是【文档块】，用 gold_chunks.json
@@ -99,22 +105,36 @@ def compute_keyword_recall(eval_set, answers):
 def _sweep_key(entry):
     """一条记录的身份：换个配置算新记录，同样配置重跑就覆盖。
     必须和 evaluator.py 的同名函数一致 —— 两个 side 的 key 形状不同，
-    「同配置」的判断就会跑偏（生成侧漏了 top_k 的话，top_k=3 和 6 会撞车互相覆盖）。"""
+    「同配置」的判断就会跑偏（生成侧漏了 top_k 的话，top_k=3 和 6 会撞车互相覆盖）。
+
+    ★ 为什么 runs 也在 key 里：1 轮和 5 轮是【两次不同的测量】，不是同一条配置。
+      5 轮贵 5 倍，如果和 1 轮共用一个 key，一次顺手重跑就把它冲掉了。
+      检索侧没有 runs → c.get("runs") 恒为 None，形状仍然一致。"""
     c = entry["config"]
-    return (c.get("chunk_size"), c.get("chunk_overlap"), c.get("top_k"), entry["side"])
+    return (c.get("chunk_size"), c.get("chunk_overlap"), c.get("top_k"),
+            c.get("runs"), entry["side"])
 
 
-def record_sweep(avg, rows):
-    """把这次的生成侧结果记进 sweep_results.json（和 evaluator 共用一个总账文件）。"""
-    # 生成侧同时依赖两套参数：切块参数（哪几块）+ 生成参数（喂几块、哪个模型）
+def record_sweep(avg, rows, band=None):
+    """把这次的生成侧结果记进 sweep_results.json（和 evaluator 共用一个总账文件）。
+
+    avg  —— 这次的总分（单次跑就是那一次；跑了噪声带就是 N 轮的均值）
+    rows —— 逐题明细。单次＝每题一次分数；噪声＝每题 N 轮的均值/上下界
+    band —— 噪声带 (lo, hi)。单次跑传 None（没测就没有，不编一个出来）
+    """
+    # 生成侧同时依赖两套参数：切块参数（哪几块）+ 生成参数（喂几块、哪个模型、跑几轮）
     config = json.load(open(CONFIG_JSON, encoding="utf-8")) if CONFIG_JSON.exists() else {}
     if GEN_CONFIG_JSON.exists():
         config.update(json.load(open(GEN_CONFIG_JSON, encoding="utf-8")))
 
+    metrics = {"keyword_recall": avg}
+    if band is not None:
+        metrics["noise_band"] = [band[0], band[1]]
+
     entry = {
         "config": config,
         "side": "generation",
-        "metrics": {"keyword_recall": avg},
+        "metrics": metrics,
         "per_question": rows,
     }
 
@@ -125,7 +145,9 @@ def record_sweep(avg, rows):
 
     with open(SWEEP_JSON, "w", encoding="utf-8") as f:
         json.dump(sweep, f, ensure_ascii=False, indent=2)
-    print(f"已记入扫参总账（现 {len(sweep)} 条）→ {SWEEP_JSON}")
+
+    tag = f"{config.get('runs')} 轮" if config.get("runs") else "?"
+    print(f"已记入扫参总账（现 {len(sweep)} 条，本次 runs={tag}）→ {SWEEP_JSON}")
 
 
 def compute_noise_band(eval_set, multirun):
@@ -143,6 +165,38 @@ def compute_noise_band(eval_set, multirun):
     return scores, min(scores), max(scores)
 
 
+def per_question_noise(eval_set, multirun):
+    """每题的 N 轮 均值 / 最低 / 最高。
+
+    ★ 为什么总分不够：总分只给一个数，看不出「是哪几题在动」。
+      9/15 实测：20 题里只有 #6 #7 #8 #13 #20 会晃，
+      #20 一个人在 0.33↔1.00 之间跳，凭它一题就能拉动总分 0.033。
+      所以两个配置差 0.03 时，必须翻这张表才知道那是噪声还是真差异。
+
+    total 只有一个值：分母来自【标准答案】，不随生成答案变。"""
+    n_runs = len(multirun[0]["answers"])
+    per_id = {}                      # id -> {"total": int, "scores": [每轮分数]}
+    for r in range(n_runs):
+        answers = [{"id": it["id"], "answer": it["answers"][r]} for it in multirun]
+        _, rows = compute_keyword_recall(eval_set, answers)
+        for row in rows:
+            slot = per_id.setdefault(row["id"], {"total": row["total"], "scores": []})
+            if row["score"] is not None:
+                slot["scores"].append(row["score"])
+
+    out = []
+    for i in sorted(per_id):
+        sc = per_id[i]["scores"]
+        out.append({
+            "id": i,
+            "total": per_id[i]["total"],
+            "score_mean": sum(sc) / len(sc) if sc else None,
+            "score_lo": min(sc) if sc else None,
+            "score_hi": max(sc) if sc else None,
+        })
+    return out
+
+
 if __name__ == "__main__":
     eval_set = json.load(open(EVAL_JSON, encoding="utf-8"))
 
@@ -152,13 +206,30 @@ if __name__ == "__main__":
             sys.exit(f"没有 {NOISE_JSON}\n先跑：python src/generator.py --runs 5")
         multirun = json.load(open(NOISE_JSON, encoding="utf-8"))
         scores, lo, hi = compute_noise_band(eval_set, multirun)
+        mean = sum(scores) / len(scores)
 
         print(f"同一配置跑了 {len(scores)} 轮，每轮总分：")
         for i, s in enumerate(scores, 1):
             print(f"  第 {i} 轮：{s:.2f}")
         print(f"\n噪声带 = [{lo:.2f}, {hi:.2f}]   （波动 {hi - lo:.2f}）")
+        print(f"均值   = {mean:.2f}   ← 和别的配置比，比的是这个数，不是单轮")
         print("→ 以后改动，分数要超出这个范围才算真改善；带内波动是抽签。")
-        print("[!]N ≥ 5 才靠谱（n=2 会被运气骗）。")
+        print("[!]N >= 5 才靠谱（n=2 会被运气骗）。")
+
+        # 哪几题在动 —— 总分看不出这个，而它才是判「噪声 vs 真差异」的依据
+        rows = per_question_noise(eval_set, multirun)
+        movers = [r for r in rows if r["score_hi"] - r["score_lo"] > 0.01]
+        if movers:
+            print(f"\n会动的题（{len(movers)}/{len(rows)} 题，其余 {len(rows)-len(movers)} 题纹丝不动）：")
+            for r in movers:
+                print(f"  #{r['id']:02d}  {r['score_lo']:.2f} ~ {r['score_hi']:.2f}"
+                      f"   (均值 {r['score_mean']:.2f}, 分母 {r['total']} 个关键词)")
+            print("→ 分母越小晃得越狠。两个配置一比，先看这几题是不是「同一批人」。")
+        else:
+            print(f"\n{len(rows)} 题在 {len(scores)} 轮里分数完全一致（这次没抽到噪声）。")
+
+        if "--record" in sys.argv:
+            record_sweep(mean, rows, band=(lo, hi))
 
     else:
         # ===== 模式一：算总分 =====

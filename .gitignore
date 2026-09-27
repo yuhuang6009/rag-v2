@@ -5,3 +5,7 @@ __pycache__/
 venv/
 .DS_Store
 *.tmp
+
+# 断点（临时状态，不该提交）
+data/_progress.json
+data/_progress.tmp
