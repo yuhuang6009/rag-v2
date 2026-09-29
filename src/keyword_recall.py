@@ -115,17 +115,59 @@ def _sweep_key(entry):
             c.get("runs"), entry["side"])
 
 
-def record_sweep(avg, rows, band=None):
+def _data_top_k(records):
+    """从产物的 context 反推当时喂了几块。
+
+    context 是 top_k 个块用空行（\\n\\n）拼起来的，而块【内部】没有空行
+    （302 块已核实：含空行的 0 个），所以按空行切出来的段数精确等于 top_k。"""
+    return len(records[0]["context"].split("\n\n"))
+
+
+def _check_stamp(records, data_runs):
+    """记账前核对：gen_config.json（戳）说的，必须和产物文件里的一致。
+
+    ★ 为什么必须拦：账本的 key 由 config 决定，而分数由产物文件决定。
+      两者不是一对的时候，记进去的记录会用【错的 key】覆盖别的配置的真记录，
+      而且账本上完全看不出来（数字正常、config 也正常，只是它俩不是一对）。
+      9/27 那场覆盖事故就是这么来的。
+
+    对不上就退出，不记 —— 宁可少一条记录，不要一条假记录。
+    只在 --record 时调用：不记账的普通查看，戳过期了也允许跑。"""
+    if not GEN_CONFIG_JSON.exists():
+        sys.exit(f"没有 {GEN_CONFIG_JSON}，无法确认这批数据的身份，拒绝记账")
+    stamp = json.load(open(GEN_CONFIG_JSON, encoding="utf-8"))
+
+    problems = []
+    if stamp.get("runs") != data_runs:
+        problems.append(f"runs ：戳说 {stamp.get('runs')}，产物里是 {data_runs}")
+    data_top_k = _data_top_k(records)
+    if stamp.get("top_k") != data_top_k:
+        problems.append(f"top_k：戳说 {stamp.get('top_k')}，产物的 context 里是 {data_top_k} 块")
+
+    if problems:
+        sys.exit("[!] 戳和产物对不上，拒绝记账：\n    " + "\n    ".join(problems)
+                 + "\n    → 记下去会用【错的 key】覆盖别的配置的真记录，账本上还看不出来。"
+                 "\n    → 先重跑 generator.py 重新生成这批数据，让戳对上，再记账。")
+
+
+def record_sweep(avg, rows, runs, band=None):
     """把这次的生成侧结果记进 sweep_results.json（和 evaluator 共用一个总账文件）。
 
     avg  —— 这次的总分（单次跑就是那一次；跑了噪声带就是 N 轮的均值）
     rows —— 逐题明细。单次＝每题一次分数；噪声＝每题 N 轮的均值/上下界
+    runs —— 这批数据跑了几轮。★ 故意不给默认值：漏传要【当场报错】。
+            若默认成 1，噪声模式忘了传就会被静默记成 1 轮 —— 那正是
+            key 撞车、真记录被顺手冲掉的形状（9/27 那场事故）。
     band —— 噪声带 (lo, hi)。单次跑传 None（没测就没有，不编一个出来）
+
+    ★ runs 由【调用者】给，不从 gen_config.json 读：那枚戳是单次/多轮两批
+      数据共用的一份，只装得下最后写它的那个 —— 从戳读必错。
     """
     # 生成侧同时依赖两套参数：切块参数（哪几块）+ 生成参数（喂几块、哪个模型、跑几轮）
     config = json.load(open(CONFIG_JSON, encoding="utf-8")) if CONFIG_JSON.exists() else {}
     if GEN_CONFIG_JSON.exists():
         config.update(json.load(open(GEN_CONFIG_JSON, encoding="utf-8")))
+    config["runs"] = runs
 
     metrics = {"keyword_recall": avg}
     if band is not None:
@@ -146,7 +188,7 @@ def record_sweep(avg, rows, band=None):
     with open(SWEEP_JSON, "w", encoding="utf-8") as f:
         json.dump(sweep, f, ensure_ascii=False, indent=2)
 
-    tag = f"{config.get('runs')} 轮" if config.get("runs") else "?"
+    tag = f"{runs} 轮"
     print(f"已记入扫参总账（现 {len(sweep)} 条，本次 runs={tag}）→ {SWEEP_JSON}")
 
 
@@ -175,7 +217,7 @@ def per_question_noise(eval_set, multirun):
 
     total 只有一个值：分母来自【标准答案】，不随生成答案变。"""
     n_runs = len(multirun[0]["answers"])
-    per_id = {}                      # id -> {"total": int, "scores": [每轮分数]}
+    per_id = {}                         # id -> {"total": int, "scores": [每轮分数]}
     for r in range(n_runs):
         answers = [{"id": it["id"], "answer": it["answers"][r]} for it in multirun]
         _, rows = compute_keyword_recall(eval_set, answers)
@@ -229,7 +271,8 @@ if __name__ == "__main__":
             print(f"\n{len(rows)} 题在 {len(scores)} 轮里分数完全一致（这次没抽到噪声）。")
 
         if "--record" in sys.argv:
-            record_sweep(mean, rows, band=(lo, hi))
+            _check_stamp(multirun, data_runs=len(scores))
+            record_sweep(mean, rows, runs=len(scores), band=(lo, hi))
 
     else:
         # ===== 模式一：算总分 =====
@@ -246,4 +289,5 @@ if __name__ == "__main__":
         print("[!]单次数字不可当真：生成有噪声。要测噪声带就跑 --noise。")
 
         if "--record" in sys.argv:
-            record_sweep(avg, rows)
+            _check_stamp(answers, data_runs=1)      # answers.json 是单次产物 → 必为 1 轮
+            record_sweep(avg, rows, runs=1)
