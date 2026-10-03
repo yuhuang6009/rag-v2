@@ -1,12 +1,13 @@
 # src/generator.py —— 生成：检索到的块 → 拼 prompt → qwen-plus → 答案
 # 依赖：data/chunks.json + data/retrieval_results.json + DASHSCOPE_API_KEY
 # 功能：
-#   build_prompt(q, context)      把【参考资料 + 用户问题】拼成提示词
-#   generate_answer(q, context)   调 qwen-plus，返回答案文本
+#   build_prompt(q, context, prompt_name)     把【参考资料 + 用户问题】拼成提示词
+#   generate_answer(q, context, prompt_name)  调 qwen-plus，返回答案文本
 # 命令行用法：
-#   python src/generator.py             # 跑 20 题，出答案存 data/answers.json
-#   python src/generator.py --top-k 5   # 换喂给大模型的块数
-#   python src/generator.py --runs 5    # 同一配置跑 5 轮，存 answers_multirun.json（测噪声带用）
+#   python src/generator.py                    # 跑 20 题，出答案存 data/answers.json
+#   python src/generator.py --top-k 5          # 换喂给大模型的块数
+#   python src/generator.py --runs 5           # 同一配置跑 5 轮，存 answers_multirun.json（测噪声带用）
+#   python src/generator.py --prompt short     # 换 prompt 模板（可选 v1 / short），默认 v1
 #
 # 为什么不用重新算向量：retrieval_results.json 里已经存了 ranked（114 块的完整排序），
 # 这步只要「切前 k 名 → 按编号去 chunks.json 取原文」，不碰 embedding（省一半 API 钱）。
@@ -18,8 +19,8 @@
 #   answers_multirun.json  —— 同一配置跑 N 轮。给噪声带用。每题存 N 个答案的列表。
 #   为什么不合一个文件：噪声带要的是「同配置重复多次」，faithfulness 要的是「一份确定的答案」，
 #   两个用途的读者不同，混在一起以后会乱。
-#   ★ 两条路【都】写 gen_config.json，且都带 runs。漏写的话，总账会把
-#     「1 轮」和「5 轮」当成同一条配置，贵的那个被顺手重跑冲掉。
+#   ★ 两条路【都】写 gen_config.json，且都带 runs + prompt。漏写的话，总账会把
+#     「1 轮」和「5 轮」（或 v1 和 short）当成同一条配置，贵的那个被顺手重跑冲掉。
 #
 # 抗断（长任务必备）：
 #   ① 重试    —— 单次请求遇到网络抖动，自己等 1/2/4 秒重试，最多 4 次
@@ -63,17 +64,58 @@ TOP_K = 3                                     # 喂给大模型几块（第 7 �
 MODEL = "qwen-plus"
 NOISE_RUNS = 5                                # --runs 不指定时，测噪声带跑几轮（N≥5）
 
-PROMPT_TEMPLATE = """参考下面资料回答用户问题，尽量使用资料回答，不要编造。
+# prompt 模板库。键是「版本名」，写进 gen_config.json、也进账本的 key（_sweep_key）。
+# ★ 换个版本 = 换了一个实验，两个模板的记录【绝不能互相覆盖】。
+PROMPT_VERSIONS = {
+    "v1": """参考下面资料回答用户问题，尽量使用资料回答，不要编造。
 【参考资料】
 {context}
 
 【用户问题】
-{question}"""
+{question}""",
+
+    # 只比 v1 多一句：要求简短作答、不要复述原文。
+    # ★ 单变量：除这一句外一个字都不许动，否则分不清分数变化是谁造成的。
+    "short": """参考下面资料回答用户问题，尽量使用资料回答，不要编造。
+用一到两句话直接回答，不要复述资料原文。
+【参考资料】
+{context}
+
+【用户问题】
+{question}""",
+}
+
+DEFAULT_PROMPT = "v1"
 
 
-def build_prompt(question, context):
-    """把参考资料和问题拼成提示词。context 是已用空行拼好的多段资料。"""
-    return PROMPT_TEMPLATE.format(context=context, question=question)
+def prompt_arg(default):
+    """从命令行取 --prompt 后面的【字符串】，没给就返回 default。
+    两种写法都认：--prompt short   或   --prompt=short
+
+    和 chunker.py 的 int_arg 同一个套路，区别只是这次取的是【词】不是【数】——
+    照抄 int_arg 会把 "short" 当整数解析然后炸掉。
+
+    ★ 名字不在 PROMPT_VERSIONS 里就【当场退出】。静默回退到默认的话，
+      拼错 --prompt shrot 会让你以为测了简短版、其实跑的是 v1 ——
+      结论全错，而分数看起来完全正常（又是静默失败那个形状）。"""
+    name = default
+    for i, arg in enumerate(sys.argv):
+        if arg == "--prompt":                     # 空格隔开：值在下一个词
+            name = sys.argv[i + 1]
+        elif arg.startswith("--prompt="):         # 等号连着：值在等号后面
+            name = arg.split("=", 1)[1]
+    if name not in PROMPT_VERSIONS:
+        sys.exit(f"[!] 未知的 prompt 版本：{name!r}\n"
+                 f"    可选：{', '.join(PROMPT_VERSIONS)}")
+    return name
+
+
+def build_prompt(question, context, prompt_name):
+    """把参考资料和问题拼成提示词。context 是已用空行拼好的多段资料。
+
+    prompt_name 必传（不给默认值）：模板名是这批答案的【身份】之一，
+    从入口一路显式传到这儿，中间谁都不许替它猜。"""
+    return PROMPT_VERSIONS[prompt_name].format(context=context, question=question)
 
 
 def _call_once(prompt):
@@ -93,12 +135,12 @@ def _call_once(prompt):
     return resp.output.text
 
 
-def generate_answer(question, context):
+def generate_answer(question, context, prompt_name):
     """调 qwen-plus，返回答案纯文本。瞬时网络故障自动重试。
 
     ★ 为什么要重试：一个任务要连发 100 个请求，中途被服务端掐连接是常态
       （9/27 就在第 17 题撞上 RemoteDisconnected）。没有重试 → 前面 80 次全白花。"""
-    prompt = build_prompt(question, context)
+    prompt = build_prompt(question, context, prompt_name)
     for i, wait in enumerate(RETRY_WAITS, 1):
         try:
             return _call_once(prompt)
@@ -108,7 +150,7 @@ def generate_answer(question, context):
     return _call_once(prompt)   # 最后一次不兜住：还失败就把错抛出去，让调用者知道
 
 
-def _save_progress(top_k, runs, done):
+def _save_progress(prompt_name, top_k, runs, done):
     """把断点写进 _progress.json。
 
     ★ 为什么不直接写正式产物：正式文件一旦是半截的，下游（keyword_recall）
@@ -118,7 +160,7 @@ def _save_progress(top_k, runs, done):
     先写 .tmp 再改名（原子替换）：避免写到一半断电，留下一个坏 json 让断点报废。"""
     tmp = PROGRESS_JSON.with_suffix(".tmp")
     with open(tmp, "w", encoding="utf-8") as f:
-        json.dump({"top_k": top_k, "runs": runs, "done": done}, f,
+        json.dump({"prompt": prompt_name, "top_k": top_k, "runs": runs, "done": done}, f,
                   ensure_ascii=False, indent=2)
     tmp.replace(PROGRESS_JSON)
 
@@ -129,8 +171,11 @@ def _clear_progress():
     PROGRESS_JSON.with_suffix(".tmp").unlink(missing_ok=True)
 
 
-def _load_progress(top_k, runs):
-    """读断点。配置对不上就作废（换了 top_k/runs 还想接旧进度 = 串味）。"""
+def _load_progress(prompt_name, top_k, runs):
+    """读断点。配置对不上就作废（换了 prompt/top_k/runs 还想接旧进度 = 串味）。
+
+    ★ prompt 也必须比：v1 跑到一半改成 short 接着跑的话，会得到
+      【半 v1 半 short】的数据，而 _clear_progress 事后又把断点清掉 —— 完全看不出混过。"""
     if not PROGRESS_JSON.exists():
         return {}
     try:
@@ -139,32 +184,34 @@ def _load_progress(top_k, runs):
         print("[断点] _progress.json 读不动（可能上次写到一半断了），丢弃重跑")
         return {}
 
-    if p.get("top_k") == top_k and p.get("runs") == runs:
+    if (p.get("prompt") == prompt_name and p.get("top_k") == top_k
+            and p.get("runs") == runs):
         done = p.get("done", {})
         if done:
-            print(f"[断点] 已答完 {len(done)}/20 题（top_k={top_k} runs={runs}），接着跑剩下的")
+            print(f"[断点] 已答完 {len(done)}/20 题"
+                  f"（prompt={prompt_name} top_k={top_k} runs={runs}），接着跑剩下的")
         return done
 
-    print(f"[断点] 旧进度是 top_k={p.get('top_k')} runs={p.get('runs')}，"
-          f"和这次（{top_k}/{runs}）对不上，丢弃重跑")
+    print(f"[断点] 旧进度是 prompt={p.get('prompt')} top_k={p.get('top_k')} "
+          f"runs={p.get('runs')}，和这次（{prompt_name}/{top_k}/{runs}）对不上，丢弃重跑")
     return {}
 
 
-def generate_all(top_k, runs=1):
+def generate_all(top_k, prompt_name, runs=1):
     """跑 20 题 × runs 轮。返回 [{id, question, context, answers: [第1次, 第2次, ...]}]。
 
     context 每题只存一份 —— 同一题每一轮给大模型的资料【完全相同】（检索是确定性的），
     所以存一份就够，不用存 N 份。变的是答案，不是材料。
 
     ★ 断点续跑：每答完一题存一次进度。中途挂了，重跑同一条命令 → 从断点接，
-      已经花掉的调用不重花。进度文件带 top_k/runs，换了配置不会串味。"""
+      已经花掉的调用不重花。进度文件带 prompt/top_k/runs，换了配置不会串味。"""
     chunks = json.load(open(CHUNKS_JSON, encoding="utf-8"))
     retrieval = json.load(open(RETRIEVAL_JSON, encoding="utf-8"))
 
     # {块编号: 原文}，方便按 ranked 里的编号取文本
     chunk_map = {c["index"]: c["text"] for c in chunks}
 
-    done = _load_progress(top_k, runs)
+    done = _load_progress(prompt_name, top_k, runs)
     results = []
     for item in retrieval:                                # 每题：id / question / ranked
         qid = item["id"]
@@ -178,7 +225,7 @@ def generate_all(top_k, runs=1):
         ids = item["ranked"][:top_k]                      # 完整榜单切前 k 名
         context = "\n\n".join(chunk_map[i] for i in ids)  # 取原文，空行隔开
 
-        answers = [generate_answer(question, context) for _ in range(runs)]
+        answers = [generate_answer(question, context, prompt_name) for _ in range(runs)]
         record = {
             "id": qid,
             "question": question,
@@ -187,16 +234,16 @@ def generate_all(top_k, runs=1):
         }
         results.append(record)
         done[str(qid)] = record
-        _save_progress(top_k, runs, done)                 # ← 一题一存，挂了只丢这一题
+        _save_progress(prompt_name, top_k, runs, done)    # ← 一题一存，挂了只丢这一题
 
         print(f"#{qid:02d} 已回答 {runs} 次（用 {len(ids)} 块）"
               f"（答案 {len(answers[0])} 字）")
     return results
 
 
-def _run(top_k):
+def _run(top_k, prompt_name):
     """单次运行 → answers.json（每题一个答案，原格式）。"""
-    results = generate_all(top_k, runs=1)
+    results = generate_all(top_k, prompt_name, runs=1)
 
     # 把 answers 列表摊平成单个 answer：保持原格式，faithfulness 直接读
     flat = [
@@ -207,9 +254,10 @@ def _run(top_k):
     with open(ANSWERS_JSON, "w", encoding="utf-8") as f:
         json.dump(flat, f, ensure_ascii=False, indent=2)
 
-    # 记录生成参数 —— top_k 决定喂几块，直接改变答案，是这批数据的身份之一
+    # 记录生成参数 —— top_k 决定喂几块、prompt 决定怎么问，两个都直接改变答案，
+    # 都是这批数据的身份，缺一个下游就分不清两批数据。
     with open(GEN_CONFIG_JSON, "w", encoding="utf-8") as f:
-        json.dump({"top_k": top_k, "runs": 1, "model": MODEL}, f,
+        json.dump({"top_k": top_k, "runs": 1, "prompt": prompt_name, "model": MODEL}, f,
                   ensure_ascii=False, indent=2)
 
     print(f"\n20 题答案已存 → {ANSWERS_JSON}")
@@ -218,19 +266,19 @@ def _run(top_k):
     return flat
 
 
-def run_noise(top_k, runs):
+def run_noise(top_k, prompt_name, runs):
     """同一配置跑 runs 轮 → answers_multirun.json（给噪声带用）。
 
     [!] 要花 runs × 20 次生成调用。runs=5 → 100 次。"""
-    results = generate_all(top_k, runs=runs)
+    results = generate_all(top_k, prompt_name, runs=runs)
     with open(NOISE_JSON, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
 
     # 记录生成参数 —— 和 _run() 一样，别漏。
-    # runs 是这一批数据的身份之一：1 轮和 5 轮是【两条不同的记录】
+    # runs/top_k/prompt 都是这一批数据的身份：1 轮和 5 轮是两条记录、v1 和 short 也是
     # （见 keyword_recall.py 的 _sweep_key），不写的话两批会撞车互相覆盖。
     with open(GEN_CONFIG_JSON, "w", encoding="utf-8") as f:
-        json.dump({"top_k": top_k, "runs": runs, "model": MODEL}, f,
+        json.dump({"top_k": top_k, "runs": runs, "prompt": prompt_name, "model": MODEL}, f,
                   ensure_ascii=False, indent=2)
 
     print(f"\n20 题 × {runs} 轮已存 → {NOISE_JSON}")
@@ -253,13 +301,18 @@ if __name__ == "__main__":
         if arg.startswith("--runs"):
             runs = int(arg.split("=")[1] if "=" in arg else sys.argv[sys.argv.index(arg) + 1])
 
+    prompt_name = prompt_arg(DEFAULT_PROMPT)     # 名字不在表里会直接退出，不会静默
+
     if runs > 1:                       # 显式要测噪声 → 走 multi-run 分支
-        run_noise(top_k, runs)
+        run_noise(top_k, prompt_name, runs)
     else:                              # 默认：单次运行，更新 answers.json
-        _run(top_k)
+        _run(top_k, prompt_name)
 
 
 
-# python src/generator.py --runs 5  
-# python src/keyword_recall.py --noise
+# —— prompt 对比实验（唯一变量是模板，别的参数一个字不动）——
+# python src/generator.py --prompt v1    --top-k 2 --runs 5
+# python src/keyword_recall.py --noise --record
+# python src/generator.py --prompt short --top-k 2 --runs 5
+# python src/keyword_recall.py --noise --record
 

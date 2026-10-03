@@ -109,10 +109,15 @@ def _sweep_key(entry):
 
     ★ 为什么 runs 也在 key 里：1 轮和 5 轮是【两次不同的测量】，不是同一条配置。
       5 轮贵 5 倍，如果和 1 轮共用一个 key，一次顺手重跑就把它冲掉了。
-      检索侧没有 runs → c.get("runs") 恒为 None，形状仍然一致。"""
+
+    ★ 为什么 prompt 也在 key 里：v1 和 short 是【两个不同的实验】。
+      不加的话，跑完 v1 再跑 short，key 一模一样 → v1 那条被 short 覆盖
+      → 你手里只剩一条记录 → 【实验根本做不出来】。（runs 那个坑的原样重放）
+
+      检索侧没有 runs / prompt → c.get(...) 恒为 None，形状仍然一致。"""
     c = entry["config"]
     return (c.get("chunk_size"), c.get("chunk_overlap"), c.get("top_k"),
-            c.get("runs"), entry["side"])
+            c.get("runs"), c.get("prompt"), entry["side"])
 
 
 def _data_top_k(records):

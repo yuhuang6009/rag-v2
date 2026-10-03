@@ -52,11 +52,11 @@ def _sweep_key(entry):
     """一条记录的身份：换个配置算新记录，同样配置重跑就覆盖。
 
     ★ 必须和 keyword_recall.py 的同名函数【形状一致】。
-      runs 在生成侧用来分开「1 轮」和「5 轮」两次测量；
-      检索侧没有这个字段 → c.get("runs") 恒为 None，不影响这边的去重。"""
+      生成侧用 runs 分开「1 轮」和「5 轮」、用 prompt 分开「v1」和「short」；
+      检索侧没有这两个字段 → c.get(...) 恒为 None，不影响这边的去重。"""
     c = entry["config"]
     return (c.get("chunk_size"), c.get("chunk_overlap"), c.get("top_k"),
-            c.get("runs"), entry["side"])
+            c.get("runs"), c.get("prompt"), entry["side"])
 
 
 def record_sweep(gold, retrieval, top_k=TOP_K):
