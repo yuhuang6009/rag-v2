@@ -1,5 +1,6 @@
 {
   "top_k": 2,
   "runs": 5,
+  "prompt": "short",
   "model": "qwen-plus"
 }
