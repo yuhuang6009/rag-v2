@@ -1,0 +1,9 @@
+{
+  "chunk_size": 400,
+  "chunk_overlap": 160,
+  "top_k": 2,
+  "runs": 1,
+  "prompt": null,
+  "model": "qwen-plus",
+  "_note": "从账本 sweep_results.json 第 7 条重建，不是当时的原始戳。runs=1：只有单次样本，落在 keyword_recall 的噪声带里，分数只能当粗筛，不能当结论"
+}

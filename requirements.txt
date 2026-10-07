@@ -1,0 +1,14 @@
+# rag-v2 依赖清单
+# 环境：Python 3.13
+# 装法：pip install -r requirements.txt
+#
+# 版本按 2026-10 实测环境固定（== 保证 clone 下来能复现同一套）。
+# 只有两个三方包：src/ 里 import 的第三方库就这两个，其余全是标准库。
+
+dashscope==1.26.4     # 通义千问：TextEmbedding（转向量）+ Generation（生成答案）
+requests==2.33.1      # generator.py 里用于 HTTP 层重试/超时的细节处理
+
+# —— 说明 ——
+# numpy / python-dotenv / tqdm 本机装了，但 src/ 里【没有】import，
+# 所以不列进来（避免把无关包带进这个项目）。
+# 如果以后要用 numpy 加速余弦、或用 .env 管密钥，再加。

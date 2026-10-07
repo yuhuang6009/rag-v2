@@ -1,0 +1,7 @@
+{
+  "top_k": 2,
+  "runs": 5,
+  "prompt": null,
+  "model": "qwen-plus",
+  "_note": "从账本 sweep_results.json 第 8 条重建，不是当时的原始戳。prompt=null 指硬编码的 v1 模板（那时还没有 --prompt 参数）"
+}

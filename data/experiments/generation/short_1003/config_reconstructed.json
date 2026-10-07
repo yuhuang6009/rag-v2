@@ -1,0 +1,7 @@
+{
+  "top_k": 2,
+  "runs": 5,
+  "prompt": "short",
+  "model": "qwen-plus",
+  "_note": "从账本 sweep_results.json 第 10 条重建，不是当时的原始戳"
+}
