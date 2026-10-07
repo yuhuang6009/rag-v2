@@ -35,14 +35,16 @@ data/experiments/
 | `v1_1003/` | #9 | 10/3 | 2 | 5 | `v1` | 0.7381 | 复跑，验证隔 4 天无漂移 |
 | `short_1003/` | #10 | 10/3 | 2 | 5 | `short` | 0.6226 | 掉 0.116，**但答案更好** → 尺子盲区 |
 
-各目录的产物分别是从 `data/` 下同名备份**拷贝**来的（原件未动）：
+各目录的产物都是**拷贝**，不是移动 —— 原件（除下面注明外）本身已被 git 跟踪：
 ```
-topk6_0927/answers_multirun.json  ← data/answers_multirun_topk6.json
-run1_0927/answers.json            ← data/answers.json
-v1_0927/answers_multirun.json     ← data/answers_multirun_v1_0927.json
-v1_1003/answers_multirun.json     ← data/answers_multirun_v1_1003.json
-short_1003/answers_multirun.json  ← data/answers_multirun_short_1003.json
+topk6_0927/answers_multirun.json  ← data/answers_multirun_topk6.json   （已跟踪，保留）
+run1_0927/answers.json            ← data/answers.json                  （已跟踪，保留）
+v1_0927/answers_multirun.json     ← data/answers_multirun_v1_0927.json （曾经未跟踪，已删；副本留此）
+v1_1003/answers_multirun.json     ← data/answers_multirun_v1_1003.json （曾经未跟踪，已删；副本留此）
+short_1003/answers_multirun.json  ← data/answers_multirun_short_1003.json（曾经未跟踪，已删；副本留此）
 ```
+> 说明：后三份散装文件归档后已从 `data/` 根下删除，删前逐个校验过与本目录副本字节一致；
+> 代码从头到尾只读 `answers.json` / `answers_multirun.json` / `eval_set.json`，不读它们，删了无影响。
 
 > ⚠️ **账本第 5 条（cs=800 / k=3 / runs=5 / 0.7370）没有产物快照** ——
 > 它的输出被后面的运行覆盖了，找不回来。这不是笔误，是 9/29 结构病的**现场证据**：
