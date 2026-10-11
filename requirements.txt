@@ -3,10 +3,16 @@
 # 装法：pip install -r requirements.txt
 #
 # 版本按 2026-10 实测环境固定（== 保证 clone 下来能复现同一套）。
-# 只有两个三方包：src/ 里 import 的第三方库就这两个，其余全是标准库。
+# src/ 里 import 的第三方库就这几个，其余全是标准库。
 
 dashscope==1.26.4     # 通义千问：TextEmbedding（转向量）+ Generation（生成答案）
 requests==2.33.1      # generator.py 里用于 HTTP 层重试/超时的细节处理
+
+# —— 第8周 · 混合检索 + 重排（retriever_hybrid.py）——
+rank_bm25              # BM25（稀疏检索），纯 CPU；只用它的 BM25Okapi
+sentence-transformers  # 交叉编码器重排（CrossEncoder）；会连带装 torch（较大，~2GB）
+# ↑ 装上后把版本号补成 ==x.y.z（跑 pip show rank_bm25 sentence-transformers 看版本），
+#   和上面两个包一样锁死，保证换机能复现。
 
 # —— 说明 ——
 # numpy / python-dotenv / tqdm 本机装了，但 src/ 里【没有】import，

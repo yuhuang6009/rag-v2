@@ -1320,5 +1320,296 @@
         "score_hi": 0.13333333333333333
       }
     ]
+  },
+  {
+    "config": {
+      "chunk_size": 400,
+      "chunk_overlap": 160,
+      "n_chunks": 302,
+      "top_k": 3,
+      "method": "dense"
+    },
+    "side": "retrieval",
+    "metrics": {
+      "hit_rate@1": 0.75,
+      "hit_rate@3": 1.0,
+      "hit_rate@5": 1.0
+    },
+    "per_question": [
+      {
+        "id": 1,
+        "gold_rank": 2
+      },
+      {
+        "id": 2,
+        "gold_rank": 1
+      },
+      {
+        "id": 3,
+        "gold_rank": 2
+      },
+      {
+        "id": 4,
+        "gold_rank": 1
+      },
+      {
+        "id": 5,
+        "gold_rank": 1
+      },
+      {
+        "id": 6,
+        "gold_rank": 1
+      },
+      {
+        "id": 7,
+        "gold_rank": 2
+      },
+      {
+        "id": 8,
+        "gold_rank": 2
+      },
+      {
+        "id": 9,
+        "gold_rank": 1
+      },
+      {
+        "id": 10,
+        "gold_rank": 1
+      },
+      {
+        "id": 11,
+        "gold_rank": 2
+      },
+      {
+        "id": 12,
+        "gold_rank": 1
+      },
+      {
+        "id": 13,
+        "gold_rank": 1
+      },
+      {
+        "id": 14,
+        "gold_rank": 1
+      },
+      {
+        "id": 15,
+        "gold_rank": 1
+      },
+      {
+        "id": 16,
+        "gold_rank": 1
+      },
+      {
+        "id": 17,
+        "gold_rank": 1
+      },
+      {
+        "id": 18,
+        "gold_rank": 1
+      },
+      {
+        "id": 19,
+        "gold_rank": 1
+      },
+      {
+        "id": 20,
+        "gold_rank": 1
+      }
+    ]
+  },
+  {
+    "config": {
+      "chunk_size": 400,
+      "chunk_overlap": 160,
+      "n_chunks": 302,
+      "top_k": 3,
+      "method": "hybrid"
+    },
+    "side": "retrieval",
+    "metrics": {
+      "hit_rate@1": 0.85,
+      "hit_rate@3": 1.0,
+      "hit_rate@5": 1.0
+    },
+    "per_question": [
+      {
+        "id": 1,
+        "gold_rank": 1
+      },
+      {
+        "id": 2,
+        "gold_rank": 1
+      },
+      {
+        "id": 3,
+        "gold_rank": 2
+      },
+      {
+        "id": 4,
+        "gold_rank": 1
+      },
+      {
+        "id": 5,
+        "gold_rank": 1
+      },
+      {
+        "id": 6,
+        "gold_rank": 1
+      },
+      {
+        "id": 7,
+        "gold_rank": 1
+      },
+      {
+        "id": 8,
+        "gold_rank": 1
+      },
+      {
+        "id": 9,
+        "gold_rank": 1
+      },
+      {
+        "id": 10,
+        "gold_rank": 1
+      },
+      {
+        "id": 11,
+        "gold_rank": 2
+      },
+      {
+        "id": 12,
+        "gold_rank": 1
+      },
+      {
+        "id": 13,
+        "gold_rank": 1
+      },
+      {
+        "id": 14,
+        "gold_rank": 1
+      },
+      {
+        "id": 15,
+        "gold_rank": 1
+      },
+      {
+        "id": 16,
+        "gold_rank": 1
+      },
+      {
+        "id": 17,
+        "gold_rank": 1
+      },
+      {
+        "id": 18,
+        "gold_rank": 1
+      },
+      {
+        "id": 19,
+        "gold_rank": 2
+      },
+      {
+        "id": 20,
+        "gold_rank": 1
+      }
+    ]
+  },
+  {
+    "config": {
+      "chunk_size": 400,
+      "chunk_overlap": 160,
+      "n_chunks": 302,
+      "top_k": 3,
+      "method": "hybrid_rerank"
+    },
+    "side": "retrieval",
+    "metrics": {
+      "hit_rate@1": 0.9,
+      "hit_rate@3": 1.0,
+      "hit_rate@5": 1.0
+    },
+    "per_question": [
+      {
+        "id": 1,
+        "gold_rank": 1
+      },
+      {
+        "id": 2,
+        "gold_rank": 2
+      },
+      {
+        "id": 3,
+        "gold_rank": 1
+      },
+      {
+        "id": 4,
+        "gold_rank": 1
+      },
+      {
+        "id": 5,
+        "gold_rank": 1
+      },
+      {
+        "id": 6,
+        "gold_rank": 1
+      },
+      {
+        "id": 7,
+        "gold_rank": 1
+      },
+      {
+        "id": 8,
+        "gold_rank": 1
+      },
+      {
+        "id": 9,
+        "gold_rank": 1
+      },
+      {
+        "id": 10,
+        "gold_rank": 1
+      },
+      {
+        "id": 11,
+        "gold_rank": 1
+      },
+      {
+        "id": 12,
+        "gold_rank": 1
+      },
+      {
+        "id": 13,
+        "gold_rank": 1
+      },
+      {
+        "id": 14,
+        "gold_rank": 1
+      },
+      {
+        "id": 15,
+        "gold_rank": 1
+      },
+      {
+        "id": 16,
+        "gold_rank": 1
+      },
+      {
+        "id": 17,
+        "gold_rank": 1
+      },
+      {
+        "id": 18,
+        "gold_rank": 1
+      },
+      {
+        "id": 19,
+        "gold_rank": 2
+      },
+      {
+        "id": 20,
+        "gold_rank": 1
+      }
+    ]
   }
 ]

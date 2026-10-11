@@ -1,8 +1,10 @@
 # src/evaluator.py —— 评测指标：hit_rate（核心手写）
-# 用法：python src/evaluator.py            → 逐题诊断 + hit@1/3/5
-#       python src/evaluator.py --record   → 额外把这个配置的结果记进 sweep_results.json
-# 依赖：data/gold_chunks.json + data/retrieval_results.json
-# 注：retrieval_results.json 里每题存的是 ranked（114 块的完整排序），
+# 用法：python src/evaluator.py                    → 评测 dense（默认）的 hit@1/3/5
+#       python src/evaluator.py --method hybrid    → 评测 hybrid 那半
+#       python src/evaluator.py --method hybrid_rerank --record
+#       python src/evaluator.py --record           → 额外把结果记进 sweep_results.json
+# 依赖：data/gold_chunks.json + data/retrieval_results{,_hybrid,_hybrid_rerank}.json
+# 注：排名文件里每题存的是 ranked（302 块的完整排序），
 #     所以 hit@k 只是「切前 k 个」，改 k 不用重跑检索。
 
 import json
@@ -13,9 +15,18 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / ".." / "data"
 
 GOLD_JSON = DATA_DIR / "gold_chunks.json"
-RETRIEVAL_JSON = DATA_DIR / "retrieval_results.json"
 CONFIG_JSON = DATA_DIR / "chunk_config.json"      # chunker.py 写的「这批块的参数」
 SWEEP_JSON = DATA_DIR / "sweep_results.json"      # 扫参总账：每个配置一条记录
+
+# 检索【方法】→ 各自的排名文件（--method 选，默认 dense = 第7周基准）
+# ★ 为什么方法既要进 config、又要进 key：hybrid 与 dense 的 chunk/top_k 全一样，
+#   不加 method，hybrid 那条会【静默覆盖】dense 的真记录（9/27 事故的原样重放）。
+METHOD_FILES = {
+    "dense":         DATA_DIR / "retrieval_results.json",                # 向量（基准）
+    "hybrid":        DATA_DIR / "retrieval_results_hybrid.json",         # 向量+BM25+RRF
+    "hybrid_rerank": DATA_DIR / "retrieval_results_hybrid_rerank.json",  # 再加重排
+}
+DEFAULT_METHOD = "dense"
 
 TOP_K = 3          # 正式指标的 k（检索 top-3 里含 gold 即命中）
 
@@ -51,25 +62,30 @@ def compute_hit_rate(gold_data, retrieval_data, top_k=TOP_K):
 def _sweep_key(entry):
     """一条记录的身份：换个配置算新记录，同样配置重跑就覆盖。
 
-    ★ 必须和 keyword_recall.py 的同名函数【形状一致】。
-      生成侧用 runs 分开「1 轮」和「5 轮」、用 prompt 分开「v1」和「short」；
-      检索侧没有这两个字段 → c.get(...) 恒为 None，不影响这边的去重。"""
+    ★ 必须和 keyword_recall.py 的同名函数【形状一致】（两处都是 7 元组）。
+      生成侧用 runs/prompt 分开不同实验，检索侧用 method 分开不同检索方法；
+      没有的字段 c.get(...) 恒为 None，形状仍一致、不影响去重。
+
+    ★ method 为什么在 key 里：hybrid 与 dense 的 chunk/top_k 一模一样，
+      不进 key → 两者撞同一个 key → 后跑的静默覆盖先跑的（9/27 事故重放）。"""
     c = entry["config"]
     return (c.get("chunk_size"), c.get("chunk_overlap"), c.get("top_k"),
-            c.get("runs"), c.get("prompt"), entry["side"])
+            c.get("runs"), c.get("prompt"), c.get("method"), entry["side"])
 
 
-def record_sweep(gold, retrieval, top_k=TOP_K):
+def record_sweep(gold, retrieval, top_k=TOP_K, method=DEFAULT_METHOD):
     """把这次的检索侧结果记进 sweep_results.json。
 
     存的是什么：
       config       —— 这批块的参数（来自 chunker.py 写的 chunk_config.json）
+                      + top_k + method（哪个检索方法，dense/hybrid/hybrid_rerank）
       metrics      —— hit_rate@1/3/5 三个口径
       per_question —— 每题的 gold_rank。★ 有它就够推出任意 k 的 hit_rate
                       （hit@k == gold_rank <= k），所以「等字符量对比」可以事后算，不用重跑。
     """
     config = json.load(open(CONFIG_JSON, encoding="utf-8")) if CONFIG_JSON.exists() else {}
     config["top_k"] = top_k
+    config["method"] = method              # ★ 进 config → 进而进 key，dense/hybrid 才不会撞车
 
     gold_map = {g["id"]: g for g in gold}
     retrieval_map = {r["id"]: r for r in retrieval}
@@ -97,8 +113,17 @@ def record_sweep(gold, retrieval, top_k=TOP_K):
 
 
 if __name__ == "__main__":
+    # 选检索方法（默认 dense）—— 决定读哪个 ranked 文件
+    method = DEFAULT_METHOD
+    if "--method" in sys.argv:
+        method = sys.argv[sys.argv.index("--method") + 1]
+    if method not in METHOD_FILES:
+        sys.exit(f"未知方法 {method!r}，可选：{', '.join(METHOD_FILES)}")
+
     gold = json.load(open(GOLD_JSON, encoding="utf-8"))
-    retrieval = json.load(open(RETRIEVAL_JSON, encoding="utf-8"))
+    retrieval = json.load(open(METHOD_FILES[method], encoding="utf-8"))
+
+    print(f"方法 = {method}   （读 {METHOD_FILES[method].name}）")
 
     gold_map = {item["id"]: item for item in gold}
     retrieval_map = {item["id"]: item for item in retrieval}
@@ -121,6 +146,6 @@ if __name__ == "__main__":
         rate = compute_hit_rate(gold, retrieval, top_k=k)
         print(f"hit_rate@{k} = {rate:.2f}  ({round(rate * total)}/{total} 命中)")
 
-    # ③ 可选：记进扫参总账（扫 chunk_size 时必须开，否则换下个配置就覆盖了）
+    # ③ 可选：记进扫参总账（扫 chunk_size / 换方法时必须开，否则换下个配置就覆盖了）
     if "--record" in sys.argv:
-        record_sweep(gold, retrieval)
+        record_sweep(gold, retrieval, method=method)

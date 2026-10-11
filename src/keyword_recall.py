@@ -104,8 +104,8 @@ def compute_keyword_recall(eval_set, answers):
 
 def _sweep_key(entry):
     """一条记录的身份：换个配置算新记录，同样配置重跑就覆盖。
-    必须和 evaluator.py 的同名函数一致 —— 两个 side 的 key 形状不同，
-    「同配置」的判断就会跑偏（生成侧漏了 top_k 的话，top_k=3 和 6 会撞车互相覆盖）。
+    必须和 evaluator.py 的同名函数一致（两处都是 7 元组）—— 两个 side 的 key
+    形状不同，「同配置」的判断就会跑偏（生成侧漏了 top_k 的话，top_k=3 和 6 会撞车互相覆盖）。
 
     ★ 为什么 runs 也在 key 里：1 轮和 5 轮是【两次不同的测量】，不是同一条配置。
       5 轮贵 5 倍，如果和 1 轮共用一个 key，一次顺手重跑就把它冲掉了。
@@ -114,10 +114,11 @@ def _sweep_key(entry):
       不加的话，跑完 v1 再跑 short，key 一模一样 → v1 那条被 short 覆盖
       → 你手里只剩一条记录 → 【实验根本做不出来】。（runs 那个坑的原样重放）
 
-      检索侧没有 runs / prompt → c.get(...) 恒为 None，形状仍然一致。"""
+    检索侧没有 runs / prompt，生成侧没有 method → c.get(...) 恒为 None，
+    形状仍然一致（第 6 位 method 是给检索侧 dense/hybrid 分家的）。"""
     c = entry["config"]
     return (c.get("chunk_size"), c.get("chunk_overlap"), c.get("top_k"),
-            c.get("runs"), c.get("prompt"), entry["side"])
+            c.get("runs"), c.get("prompt"), c.get("method"), entry["side"])
 
 
 def _data_top_k(records):
